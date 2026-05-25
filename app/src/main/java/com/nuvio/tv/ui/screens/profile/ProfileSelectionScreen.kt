@@ -1786,44 +1786,47 @@ private fun ProfilePinOverlay(
                 onClick = { runCatching { focusRequester.requestFocus() } }
             )
             .onPreviewKeyEvent { event ->
-                val native = event.nativeKeyEvent
-                if (native.action != AndroidKeyEvent.ACTION_DOWN) {
-                    return@onPreviewKeyEvent false
-                }
-                when (native.keyCode) {
-                    AndroidKeyEvent.KEYCODE_BACK,
-                    AndroidKeyEvent.KEYCODE_ESCAPE -> {
-                        if (isInputFocused) {
-                            focusManager.clearFocus(force = true)
-                        } else {
-                            onDismiss()
-                        }
-                        true
-                    }
+            val native = event.nativeKeyEvent
 
-                    AndroidKeyEvent.KEYCODE_DEL,
-                    AndroidKeyEvent.KEYCODE_CLEAR -> {
-                        if (!isWorking && pin.isNotEmpty()) {
-                            pin = pin.dropLast(1)
-                            if (!errorMessage.isNullOrEmpty()) onClearError()
-                            if (!isSingleEntryMode) internalErrorMessage = null
-                        }
-                        true
-                    }
-
-                    else -> {
-                        val digit = keyCodeToDigit(native.keyCode)
-                        if (digit != null && !isWorking && pin.length < ProfilePinLength) {
-                            pin += digit
-                            if (!errorMessage.isNullOrEmpty()) onClearError()
-                            if (!isSingleEntryMode) internalErrorMessage = null
-                            true
-                        } else {
-                            false
-                        }
+            if (native.keyCode == AndroidKeyEvent.KEYCODE_BACK || native.keyCode == AndroidKeyEvent.KEYCODE_ESCAPE) {
+                if (native.action == AndroidKeyEvent.ACTION_UP) {
+                    if (isInputFocused) {
+                        focusManager.clearFocus(force = true)
+                    } else {
+                        onDismiss()
                     }
                 }
-            },
+                return@onPreviewKeyEvent true
+            }
+
+            if (native.action != AndroidKeyEvent.ACTION_DOWN) {
+                return@onPreviewKeyEvent false
+            }
+
+            when (native.keyCode) {
+                AndroidKeyEvent.KEYCODE_DEL,
+                AndroidKeyEvent.KEYCODE_CLEAR -> {
+                    if (!isWorking && pin.isNotEmpty()) {
+                        pin = pin.dropLast(1)
+                        if (!errorMessage.isNullOrEmpty()) onClearError()
+                        if (!isSingleEntryMode) internalErrorMessage = null
+                    }
+                    true
+                }
+
+                else -> {
+                    val digit = keyCodeToDigit(native.keyCode)
+                    if (digit != null && !isWorking && pin.length < ProfilePinLength) {
+                        pin += digit
+                        if (!errorMessage.isNullOrEmpty()) onClearError()
+                        if (!isSingleEntryMode) internalErrorMessage = null
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        },
         contentAlignment = Alignment.Center
     ) {
         val headingText = when {
